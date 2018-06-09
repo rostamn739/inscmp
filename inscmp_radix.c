@@ -1,6 +1,7 @@
-#include <linux/radix-tree.h>
-#include <linux/gfp.h>
+
 #include "inscmp_mod.h"
+
+extern unsigned normal_distri[DISTRI_SIZE];
 
 RADIX_TREE(inscmp_tree, GFP_KERNEL);
 static char *dummy = "DUMMY VALUE"; //all entries will point to this
