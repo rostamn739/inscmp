@@ -1,6 +1,7 @@
 #include "inscmp_mod.h"
 #define ADD_TESTS 1
 #define ADD_BENCHMARK 1
+#undef ADD_BENCHMARK
 
 unsigned normal_distri[DISTRI_SIZE];
 
@@ -61,7 +62,7 @@ static void test_htbl_lookup( void **val_found ) {
 	inscmp_object *obje;
 	hash_for_each_possible(inscmp_htbl, obje, node, key) {
 		if ( obje->key == key) {
-			*val_found = obje->name;
+			*val_found = &obje->name;
 			return;
 		}
 	}
