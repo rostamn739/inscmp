@@ -167,6 +167,8 @@ int init_module( void ) {
 	do_gettimeofday( &tv_htbl );
 #endif
 	test_hashtable( &htbl_success_count );
+	printk( KERN_INFO "NOW WE WILL CALL DO_GETT.. AFTER TEST_HASHTABLE" );
+	do_gettimeofday ( &tv_ehtbl );
 #ifdef ADD_BENCHMARK
 	//END MEASUREING WITH HASH TABLE
 	getnstimeofday( &ts_ehtbl );
@@ -175,7 +177,7 @@ int init_module( void ) {
 		ts_diff.tv_sec, ts_diff.tv_nsec );
 #endif
 #ifdef ADD_BENCHMARK_MS
-	do_gettimeofday ( &tv_ehtbl );
+	//do_gettimeofday ( &tv_ehtbl );
 	//tv_diff.tv_sec = tv_ehtbl.tv_sec - tv_htbl.tv_sec;
 	//set_tv_usec( tv_htbl, tv_ehtbl, &tv_diff );
 	//printk( KERN_INFO "HashTable MStimed in %lu.%06lu\n", 
