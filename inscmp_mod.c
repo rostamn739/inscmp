@@ -2,6 +2,7 @@
 #define ADD_TESTS 1
 #define ADD_BENCHMARK 1
 #undef ADD_BENCHMARK
+#define ADD_BENCHMARK_MS 1
 
 unsigned normal_distri[DISTRI_SIZE];
 
@@ -99,6 +100,19 @@ static void approx_fill_normal( void ) {
 	}
 }
 
+static void set_tv_usec( struct timeval lhs, struct timeval rhs, 
+	struct timeval *resu ) {
+	if ( rhs.tv_usec < lhs.tv_usec) {
+		resu->tv_usec = 1000*1000 + rhs.tv_usec - lhs.tv_usec;
+		resu->tv_sec--;
+	} else { resu->tv_usec = rhs.tv_usec - lhs.tv_usec; }
+}
+
+#ifdef ADD_BENCHMARK_MS
+static struct timeval tv_radix, tv_htbl,
+	tv_eradix, tv_ehtbl, tv_diff;
+#endif
+
 int init_module( void ) {
 #ifdef ADD_BENCHMARK
 	struct timespec ts_radix, ts_htbl, 
@@ -108,7 +122,7 @@ int init_module( void ) {
 	int htbl_success_count;
 #ifdef ADD_TESTS
 	char *radix_lastval;
-	char *htbl_lastval;
+	char *htbl_lastval = NULL;
 #endif
     printk( KERN_INFO "INSCMP Loading\n" );
     
@@ -117,6 +131,9 @@ int init_module( void ) {
     //START MEASUREING WITH RADIX TREE
     getnstimeofday( &ts_radix );
 #endif
+#ifdef ADD_BENCHMARK_MS
+	do_gettimeofday( &tv_radix );
+#endif
     test_radix_tree( &radix_success_count );
 #ifdef ADD_BENCHMARK
     //END MEASUREING WITH RADIX TREE
@@ -124,6 +141,13 @@ int init_module( void ) {
     ts_diff = timespec_sub( ts_eradix, ts_radix );
     printk( KERN_INFO "Radix tree timed in %lu.%09lu\n", 
 		ts_diff.tv_sec, ts_diff.tv_nsec );
+#endif
+#ifdef ADD_BENCHMARK_MS
+	do_gettimeofday ( &tv_eradix );
+	tv_diff.tv_sec = tv_eradix.tv_sec - tv_radix.tv_sec;
+	set_tv_usec( tv_radix, tv_eradix, &tv_diff );
+	printk( KERN_INFO "Radix tree MStimed in %lu.%06lu\n", 
+		tv_diff.tv_sec, tv_diff.tv_usec );
 #endif
 #ifdef ADD_TESTS
 	test_radix_tree_lookup_lastval( (void **) &radix_lastval );
@@ -139,6 +163,9 @@ int init_module( void ) {
 	//START MEASUREING WITH HASH TABLE
 	getnstimeofday ( &ts_htbl );
 #endif
+#ifdef ADD_BENCHMARK_MS
+	do_gettimeofday( &tv_htbl );
+#endif
 	test_hashtable( &htbl_success_count );
 #ifdef ADD_BENCHMARK
 	//END MEASUREING WITH HASH TABLE
@@ -146,6 +173,13 @@ int init_module( void ) {
 	ts_diff = timespec_sub( ts_ehtbl, ts_htbl );
 	printk( KERN_INFO "Hashtable timed in %lu.%09lu\n", 
 		ts_diff.tv_sec, ts_diff.tv_nsec );
+#endif
+#ifdef ADD_BENCHMARK_MS
+	do_gettimeofday ( &tv_ehtbl );
+	//tv_diff.tv_sec = tv_ehtbl.tv_sec - tv_htbl.tv_sec;
+	//set_tv_usec( tv_htbl, tv_ehtbl, &tv_diff );
+	//printk( KERN_INFO "HashTable MStimed in %lu.%06lu\n", 
+	//	tv_diff.tv_sec, tv_diff.tv_usec );
 #endif
 #ifdef ADD_TESTS
 	test_htbl_lookup( (void **) &htbl_lastval );
