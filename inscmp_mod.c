@@ -1,9 +1,8 @@
 #include "inscmp_mod.h"
 #define ADD_TESTS 1
-
+#define ADD_BENCHMARK 1
 
 unsigned normal_distri[DISTRI_SIZE];
-
 
 RADIX_TREE(inscmp_tree, GFP_KERNEL);
 static char *dummy = "DUMMY VALUE"; //all entries will point to this
@@ -100,6 +99,10 @@ static void approx_fill_normal( void ) {
 }
 
 int init_module( void ) {
+#ifdef ADD_BENCHMARK
+	struct timespec ts_radix, ts_htbl, 
+		ts_eradix, ts_ehtbl, ts_diff;
+#endif
 	int radix_success_count;
 	int htbl_success_count;
 #ifdef ADD_TESTS
@@ -109,8 +112,18 @@ int init_module( void ) {
     printk( KERN_INFO "INSCMP Loading\n" );
     
     approx_fill_normal( );
+#ifdef ADD_BENCHMARK
     //START MEASUREING WITH RADIX TREE
+    getnstimeofday( &ts_radix );
+#endif
     test_radix_tree( &radix_success_count );
+#ifdef ADD_BENCHMARK
+    //END MEASUREING WITH RADIX TREE
+    getnstimeofday( &ts_eradix );
+    ts_diff = timespec_sub( ts_eradix, ts_radix );
+    printk( KERN_INFO "Radix tree timed in %lu.%09lu\n", 
+		ts_diff.tv_sec, ts_diff.tv_nsec );
+#endif
 #ifdef ADD_TESTS
 	test_radix_tree_lookup_lastval( (void **) &radix_lastval );
 	if (radix_lastval == NULL) {
@@ -120,16 +133,25 @@ int init_module( void ) {
 #endif
     printk( KERN_INFO "INSCMP Radix Tree success count %d\n", 
 		radix_success_count);
-	//END MEASUREING WITH RADIX TREE
 	
+#ifdef ADD_BENCHMARK
 	//START MEASUREING WITH HASH TABLE
+	getnstimeofday ( &ts_htbl );
+#endif
 	test_hashtable( &htbl_success_count );
+#ifdef ADD_BENCHMARK
+	//END MEASUREING WITH HASH TABLE
+	getnstimeofday( &ts_ehtbl );
+	ts_diff = timespec_sub( ts_ehtbl, ts_htbl );
+	printk( KERN_INFO "Hashtable timed in %lu.%09lu\n", 
+		ts_diff.tv_sec, ts_diff.tv_nsec );
+#endif
 #ifdef ADD_TESTS
 	test_htbl_lookup( (void **) &htbl_lastval );
 	printk( KERN_INFO "INSCMP Hashtable LAST VALUE %s\n", htbl_lastval );
 #endif
 	printk( KERN_INFO "INSCMP Hashtable success count %d\n", htbl_success_count );
-	//END MEASUREING WITH HASH TABLe
+
 	
 	//fill_uniform( );
     return 0;

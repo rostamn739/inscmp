@@ -7,6 +7,7 @@
 #include <linux/gfp.h>
 #include <linux/hashtable.h>
 #include <linux/types.h>
+#include <linux/time.h>
 
 #define DISTRI_SIZE 100000
 #define APPROX_ORDER 12 // USED FOR GETTING NORMAL DIS. FROM UNIFORM
