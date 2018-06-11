@@ -39,19 +39,32 @@ static void test_radix_tree_lookup_lastval( void **lastval ) {
 #endif
 
 DEFINE_HASHTABLE(inscmp_htbl, HASHTBL_BITS);
+static inscmp_object hashtbl_objects[DISTRI_SIZE];
+static char inscmp_object_dummyname[ ] = "DUMMY NAME";
+
+static void init_hashtbl_objects( void ) {
+	int i;
+	for (i = 0; i < DISTRI_SIZE; ++i) {
+		inscmp_object obje = {
+			.key = normal_distri[i],
+			.name = inscmp_object_dummyname
+		};
+		hashtbl_objects[i] = obje;
+	}
+}
 
 int test_hashtable( int *success_count ) {
 	int i;
 	*success_count = 0;
-	//hash_init(inscmp_htbl, HASHTBL_BITS);
 	hash_init(inscmp_htbl);
 	printk( KERN_INFO "Hashtable had initialized\n" );
 	for (i = 0; i < DISTRI_SIZE; ++i) {
-		inscmp_object obje = { 
-			.key = normal_distri[i],
-			.name = "DUMMY NAME"
-		};
-		(void) hash_add( inscmp_htbl, &obje.node, obje.key );
+		//inscmp_object obje = { 
+		//	.key = normal_distri[i],
+		//	.name = "DUMMY NAME"
+		//};
+		inscmp_object *obje = &hashtbl_objects[i];
+		(void) hash_add( inscmp_htbl, &obje->node, obje->key );
 		*success_count += 1;
 	}
 	return 0;
@@ -63,7 +76,7 @@ static void test_htbl_lookup( void **val_found ) {
 	inscmp_object *obje;
 	hash_for_each_possible(inscmp_htbl, obje, node, key) {
 		if ( obje->key == key) {
-			*val_found = &obje->name;
+			*val_found = obje->name;
 			return;
 		}
 	}
@@ -158,7 +171,7 @@ int init_module( void ) {
 #endif
     printk( KERN_INFO "INSCMP Radix Tree success count %d\n", 
 		radix_success_count);
-	
+	init_hashtbl_objects( );
 #ifdef ADD_BENCHMARK
 	//START MEASUREING WITH HASH TABLE
 	getnstimeofday ( &ts_htbl );
@@ -167,8 +180,6 @@ int init_module( void ) {
 	do_gettimeofday( &tv_htbl );
 #endif
 	test_hashtable( &htbl_success_count );
-	printk( KERN_INFO "NOW WE WILL CALL DO_GETT.. AFTER TEST_HASHTABLE" );
-	do_gettimeofday ( &tv_ehtbl );
 #ifdef ADD_BENCHMARK
 	//END MEASUREING WITH HASH TABLE
 	getnstimeofday( &ts_ehtbl );
@@ -177,11 +188,11 @@ int init_module( void ) {
 		ts_diff.tv_sec, ts_diff.tv_nsec );
 #endif
 #ifdef ADD_BENCHMARK_MS
-	//do_gettimeofday ( &tv_ehtbl );
-	//tv_diff.tv_sec = tv_ehtbl.tv_sec - tv_htbl.tv_sec;
-	//set_tv_usec( tv_htbl, tv_ehtbl, &tv_diff );
-	//printk( KERN_INFO "HashTable MStimed in %lu.%06lu\n", 
-	//	tv_diff.tv_sec, tv_diff.tv_usec );
+	do_gettimeofday ( &tv_ehtbl );
+	tv_diff.tv_sec = tv_ehtbl.tv_sec - tv_htbl.tv_sec;
+	set_tv_usec( tv_htbl, tv_ehtbl, &tv_diff );
+	printk( KERN_INFO "HashTable MStimed in %lu.%06lu\n", 
+		tv_diff.tv_sec, tv_diff.tv_usec );
 #endif
 #ifdef ADD_TESTS
 	test_htbl_lookup( (void **) &htbl_lastval );

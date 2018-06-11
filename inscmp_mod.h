@@ -18,7 +18,7 @@ int test_hashtable( int * );
 
 typedef struct {
 	unsigned key;
-	char name[24];
+	char *name;
 	
 	struct hlist_node node;
 } inscmp_object;
